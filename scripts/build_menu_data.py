@@ -11,6 +11,115 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 OUT = os.path.join(ROOT, 'web', 'public', 'data')
 VIZ = os.path.join(ROOT, 'data', 'derived')
+SPATIAL_CANDIDATES = [
+    os.path.join(ROOT, 'data', 'derived', 'spatial'),
+    os.path.join(ROOT, 'data', 'graph', 'spatial'),
+]
+
+# 地物から重心が取れない駅の参考座標（公開地図の駅位置の近似）
+STATION_FALLBACK = {
+    '流山セントラルパーク駅': dict(lat=35.83833, lon=139.92528),
+    '北小金駅': dict(lat=35.8408, lon=139.9083),
+}
+
+
+def spatial_path(*parts):
+    for base in SPATIAL_CANDIDATES:
+        p = os.path.join(base, *parts)
+        if os.path.exists(p):
+            return p
+    return os.path.join(SPATIAL_CANDIDATES[0], *parts)
+
+
+def find_gtfs_zip():
+    pats = [
+        os.path.join(ROOT, 'data', 'raw', '**', 'feed.zip'),
+        os.path.join(ROOT, 'data', 'json', '**', 'feed.zip'),
+        os.path.join(ROOT, 'data', 'external', 'gtfs', '*.zip'),
+    ]
+    found = []
+    for pat in pats:
+        found.extend(glob.glob(pat, recursive=True))
+    return found[0] if found else None
+
+
+def gtfs_bus_stops():
+    """ぐりーんバス GTFS からバス停座標を直接読む。"""
+    import csv
+    import zipfile
+    zpath = find_gtfs_zip()
+    if not zpath:
+        return []
+    out = []
+    with zipfile.ZipFile(zpath) as zf:
+        raw = zf.read('stops.txt').decode('utf-8-sig')
+        for r in csv.DictReader(io.StringIO(raw)):
+            if str(r.get('location_type') or '0') not in ('0', ''):
+                continue
+            try:
+                lon = float(r['stop_lon'])
+                lat = float(r['stop_lat'])
+            except Exception:                              # noqa: BLE001
+                continue
+            if not (35.7 < lat < 36.1 and 139.7 < lon < 140.1):
+                continue
+            out.append(dict(
+                name=r.get('stop_name') or r.get('stop_id'),
+                address='', tel='', lat=lat, lon=lon,
+                dataset='流山ぐりーんバス GTFS',
+                detail={'stop_id': r.get('stop_id') or ''},
+            ))
+    return out
+
+
+def load_stations():
+    """stations.json + 欠損座標のフォールバック。"""
+    p = spatial_path('stations.json')
+    out = []
+    if os.path.exists(p):
+        for s in load(p):
+            c = s.get('approx_centroid') or STATION_FALLBACK.get(s.get('name'))
+            if not c:
+                continue
+            src = '駅（座標は近似）'
+            if not s.get('approx_centroid') and s.get('name') in STATION_FALLBACK:
+                src = '駅（参考座標）'
+            out.append(dict(
+                name=s['name'], address='', tel='',
+                lat=c['lat'], lon=c['lon'], dataset=src,
+                detail={'路線': '・'.join(s.get('lines') or [])},
+            ))
+    # stations.json に無いフォールバック駅も足す
+    have = {r['name'] for r in out}
+    for nm, c in STATION_FALLBACK.items():
+        if nm not in have:
+            out.append(dict(
+                name=nm, address='', tel='', lat=c['lat'], lon=c['lon'],
+                dataset='駅（参考座標）', detail={},
+            ))
+    return out
+
+
+def carry_osm_from_existing(feats, catalog):
+    """poi.geojson が無いとき、既存 map_points の OSM レイヤを引き継ぐ。"""
+    prev = os.path.join(OUT, 'map_points.geojson')
+    prev_cat = os.path.join(OUT, 'map_layers.json')
+    if not os.path.exists(prev) or not os.path.exists(prev_cat):
+        return
+    old = load(prev)
+    old_cat = load(prev_cat)
+    osm_ids = {L['id'] for L in old_cat.get('layers', []) if L.get('group') == 'osm'}
+    if not osm_ids:
+        return
+    n = 0
+    for f in old['features']:
+        if f.get('properties', {}).get('layer') in osm_ids:
+            feats.append(f)
+            n += 1
+    for L in old_cat['layers']:
+        if L.get('group') == 'osm':
+            catalog.append(L)
+    print('  OSM近隣施設（既存データから継承） %d 点 / %d 種' % (n, len(osm_ids)))
 
 # ---- 地図レイヤーの定義 ---------------------------------------------------
 # group: 画面のサブタブ / kind: plot(点) | heat(密度)
@@ -235,25 +344,19 @@ def build_map():
     for L in LAYERS:
         pts = []
         if L.get('special') == 'bus':
-            p = os.path.join(ROOT, 'data', 'derived', 'spatial', 'bus_stops.geojson')
+            p = spatial_path('bus_stops.geojson')
             if os.path.exists(p):
                 for f in load(p)['features']:
                     c = f['geometry']['coordinates']
                     pts.append(dict(name=f['properties'].get('name'), address='',
                                     tel='', lat=c[1], lon=c[0],
-                                    dataset='GTFS', detail={}))
+                                    dataset='流山ぐりーんバス GTFS', detail={}))
+            if not pts:
+                pts = gtfs_bus_stops()
         elif L.get('special') == 'aed':
             pts = aed_points(known)
         elif L.get('special') == 'station':
-            p = os.path.join(ROOT, 'data', 'derived', 'spatial', 'stations.json')
-            if os.path.exists(p):
-                for s in load(p):
-                    c = s.get('approx_centroid')
-                    if c:
-                        pts.append(dict(name=s['name'], address='', tel='',
-                                        lat=c['lat'], lon=c['lon'],
-                                        dataset='駅（座標は近似）',
-                                        detail={'路線': '・'.join(s['lines'])}))
+            pts = load_stations()
         else:
             seen = set()
             for d in L['ds']:
@@ -313,6 +416,8 @@ def build_map():
                                 color=color, icon='·', count=len(fs)))
         print('  OSM近隣施設 %d 種 / %d 点（公園除く）' % (
             len(by_label), sum(len(v) for v in by_label.values())))
+    else:
+        carry_osm_from_existing(feats, catalog)
 
     json.dump(dict(type='FeatureCollection', features=feats),
               io.open(os.path.join(OUT, 'map_points.geojson'), 'w', encoding='utf-8'),
@@ -325,7 +430,9 @@ def build_map():
                    layers=catalog,
                    hazard_note='洪水浸水想定・土砂災害警戒はハザードマップポータルの'
                                '公式タイル。町丁字境界はe-Stat（人口は境界属性の2020年）。'
-                               'バス利便性はGTFS由来グリッド。消防水利は消火基盤密度の目安'
+                               'バス利便性・バス停本数は流山ぐりーんバスGTFSのみ'
+                               '（民間路線バスは含まない。セントラルパーク駅周辺は停留所なし）。'
+                               '消防水利は消火基盤密度の目安'
                                '（出動回数の地区別公開ではない）。点は市オープンデータ'
                                '（鉄道駅座標のみ一部近似）。近隣施設はOSM（公園除く）。',
                    osm_attribution='近隣施設は © OpenStreetMap contributors (ODbL)。'

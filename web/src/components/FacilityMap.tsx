@@ -491,7 +491,7 @@ export default function FacilityMap({
               setTip({
                 title: p.name || 'バス停',
                 sub: `平日の発着目安 ${p.weekday_deps.toLocaleString()} 回`,
-                meta: 'GTFS（ぐりーんバス等）',
+                meta: '流山ぐりーんバス GTFS',
                 x: info.x,
                 y: info.y,
               });
@@ -757,7 +757,7 @@ export default function FacilityMap({
               disabled={!busFreq}
             />
             <span className="swatch" style={{ background: '#286e8c' }} />
-            バス停本数（バブル）
+            ぐりーんバス停本数（バブル）
             <small>{busFreq?.features.length ?? 0}</small>
           </label>
           <label className="chk">
@@ -819,7 +819,9 @@ export default function FacilityMap({
             <small>{byLayer.get('kosodate')?.length?.toLocaleString() ?? 0}</small>
           </label>
           <p className="note">
-            バス利便性は停留所距離と平日便数から算出した150mグリッドです。
+            バスは市オープンデータの「流山ぐりーんバス」GTFSのみです（民間路線バスは含みません）。
+            利便性グリッドは停留所距離と平日便数から算出した150mセルです。
+            流山セントラルパーク駅周辺にはぐりーんバスの停留所がありません。
             消防車の出動回数は地区別座標が公開されていないため、消火の基盤密度として消防水利を表示しています。
             飲食店・コンビニ等は下の「近隣施設」で密度ヒートマップにできます。
           </p>
@@ -911,7 +913,7 @@ export default function FacilityMap({
               国土数値情報（小学校区・中学校区）
             </>
           )}
-          {(showBusAccess || showBusBubble) && <>{' · '}GTFS（バス）</>}
+          {(showBusAccess || showBusBubble) && <>{' · '}流山ぐりーんバス GTFS</>}
           {showPopDensity && <>{' · '}国勢調査2020（境界属性）</>}
         </p>
         </>
