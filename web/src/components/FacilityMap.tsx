@@ -81,6 +81,18 @@ const hex2rgb = (h: string): [number, number, number] => [
   parseInt(h.slice(5, 7), 16),
 ];
 
+const pointTitle = (p: PointProps): string => {
+  const n = String(p.name || '').trim();
+  if (n && n !== '(名称なし)') return n;
+  const d = p.detail ?? {};
+  for (const key of ['事業所名', '投票所', '種別'] as const) {
+    const v = d[key];
+    if (v != null && String(v).trim()) return String(v);
+  }
+  if (p.address) return p.address;
+  return '地点';
+};
+
 /** Carto Positron（薄い背景で施設・色分けが読みやすい） */
 const BASE_STYLE = 'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json';
 
@@ -597,7 +609,7 @@ export default function FacilityMap({
               if (f && info.x != null && info.y != null) {
                 const p = f.properties as PointProps;
                 setTip({
-                  title: p.name || '（名称なし）',
+                  title: pointTitle(p),
                   sub: p.address,
                   meta: [p.tel && `TEL ${p.tel}`, p.dataset]
                     .filter(Boolean)
@@ -943,7 +955,7 @@ export default function FacilityMap({
             <button className="close" onClick={() => setSel(null)}>
               ×
             </button>
-            <h3>{sel.name}</h3>
+            <h3>{pointTitle(sel)}</h3>
             {sel.address && <p className="addr">{sel.address}</p>}
             {sel.tel && <p className="addr">TEL {sel.tel}</p>}
             <table className="detail">

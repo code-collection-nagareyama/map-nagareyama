@@ -11,7 +11,8 @@ OUT = os.path.join(ROOT, 'data', 'derived')
 
 LAT_COL = re.compile(r'^(緯度|lat|latitude|stop_lat|y)$', re.I)
 LON_COL = re.compile(r'^(経度|lon|lng|longitude|stop_lon|x)$', re.I)
-NAME_COL = re.compile(r'^(名称|施設名|名前|stop_name|公園名|店舗名|拠点名|投票所名)$')
+NAME_COL = re.compile(
+    r'^(名称|施設名|名前|stop_name|公園名|店舗名|拠点名|投票所名|投票所|事業所名)$')
 ADDR_COL = re.compile(r'^(所在地|住所|方書|location)$')
 KANA_COL = re.compile(r'^(名称_?カナ|よみ|ふりがな)$')
 STATION_COL = re.compile(r'(隣接駅|最寄.?駅|アクセス（最寄り駅）)')

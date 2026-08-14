@@ -101,13 +101,16 @@ def points_of(ds_index):
                     ix['lat'] = j
                 elif re.match(r'^(経度|lon|lng|longitude|x)', hh, re.I) and 'lon' not in ix:
                     ix['lon'] = j
-                elif re.match(r'^(名称|施設の名称|施設名|公園名|投票所名|拠点名)', hh) \
-                        and 'name' not in ix:
+                elif re.match(
+                        r'^(名称|施設の名称|施設名|公園名|投票所名|投票所|拠点名|事業所名|店舗名|名前)',
+                        hh) and 'name' not in ix:
                     ix['name'] = j
                 elif re.match(r'^(所在地|住所|設置施設の所在地)', hh) and 'addr' not in ix:
                     ix['addr'] = j
                 elif re.match(r'^(電話番号|電話)', hh) and 'tel' not in ix:
                     ix['tel'] = j
+                elif re.match(r'^種別$', hh) and 'kind' not in ix:
+                    ix['kind'] = j
 
             body = sh['rows'][sh['header_row'] + 1:]
             if 'lat' not in ix or 'lon' not in ix:
@@ -164,7 +167,11 @@ def points_of(ds_index):
                     v = r[j]
                     if v not in (None, ''):
                         detail[hh] = v
-                out.append(dict(name=g('name') or '(名称なし)', address=g('addr'),
+                name = str(g('name') or '').strip()
+                if not name:
+                    # 消防水利など名称列が無いデータは「種別」を表示名にする
+                    name = str(g('kind') or detail.get('種別') or '').strip()
+                out.append(dict(name=name, address=g('addr'),
                                 tel=g('tel'), lat=lat, lon=lon, dataset=ds,
                                 detail=detail))
     return out
