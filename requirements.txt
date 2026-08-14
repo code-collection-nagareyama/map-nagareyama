@@ -1,0 +1,4 @@
+requests
+openpyxl
+xlrd
+msoffcrypto-tool

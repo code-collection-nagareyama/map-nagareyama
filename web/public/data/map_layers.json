@@ -1,0 +1,307 @@
+{
+ "groups": [
+  {
+   "id": "bunpu",
+   "label": "分布・利便性"
+  },
+  {
+   "id": "bousai",
+   "label": "防災"
+  },
+  {
+   "id": "kurashi",
+   "label": "くらしの施設"
+  },
+  {
+   "id": "kotsu",
+   "label": "交通"
+  },
+  {
+   "id": "osm",
+   "label": "近隣施設（OSM）"
+  }
+ ],
+ "layers": [
+  {
+   "id": "shelter",
+   "label": "避難所・避難場所",
+   "group": "bousai",
+   "kind": "plot",
+   "color": "#e4572e",
+   "icon": "◆",
+   "count": 86
+  },
+  {
+   "id": "well",
+   "label": "災害用井戸",
+   "group": "bousai",
+   "kind": "plot",
+   "color": "#3b8ea5",
+   "icon": "●",
+   "count": 39
+  },
+  {
+   "id": "suiri",
+   "label": "消防水利（密度）",
+   "group": "bousai",
+   "kind": "heat",
+   "color": "#2f6690",
+   "icon": "·",
+   "count": 2490
+  },
+  {
+   "id": "aed",
+   "label": "AED設置場所",
+   "group": "bousai",
+   "kind": "plot",
+   "color": "#d81159",
+   "icon": "＋",
+   "count": 88
+  },
+  {
+   "id": "bousai_shisetsu",
+   "label": "消防・防災施設",
+   "group": "bousai",
+   "kind": "plot",
+   "color": "#a63d40",
+   "icon": "■",
+   "count": 4
+  },
+  {
+   "id": "park",
+   "label": "公園",
+   "group": "kurashi",
+   "kind": "plot",
+   "color": "#4c9f70",
+   "icon": "●",
+   "count": 429
+  },
+  {
+   "id": "toilet",
+   "label": "公衆トイレ",
+   "group": "kurashi",
+   "kind": "plot",
+   "color": "#6b9ac4",
+   "icon": "○",
+   "count": 31
+  },
+  {
+   "id": "bunkazai",
+   "label": "文化財",
+   "group": "kurashi",
+   "kind": "plot",
+   "color": "#b07d62",
+   "icon": "▲",
+   "count": 49
+  },
+  {
+   "id": "shisetsu",
+   "label": "公共施設（全て）",
+   "group": "kurashi",
+   "kind": "plot",
+   "color": "#5c6672",
+   "icon": "■",
+   "count": 382
+  },
+  {
+   "id": "kosodate",
+   "label": "子育て施設",
+   "group": "kurashi",
+   "kind": "plot",
+   "color": "#f4a259",
+   "icon": "●",
+   "count": 143
+  },
+  {
+   "id": "fukushi",
+   "label": "福祉・介護",
+   "group": "kurashi",
+   "kind": "plot",
+   "color": "#8f5c9e",
+   "icon": "●",
+   "count": 215
+  },
+  {
+   "id": "iryo",
+   "label": "医療機関",
+   "group": "kurashi",
+   "kind": "plot",
+   "color": "#c1666b",
+   "icon": "＋",
+   "count": 60
+  },
+  {
+   "id": "chuurin",
+   "label": "駐輪場",
+   "group": "kotsu",
+   "kind": "plot",
+   "color": "#2a9d8f",
+   "icon": "◇",
+   "count": 21
+  },
+  {
+   "id": "busstop",
+   "label": "バス停",
+   "group": "kotsu",
+   "kind": "plot",
+   "color": "#457b9d",
+   "icon": "·",
+   "count": 181
+  },
+  {
+   "id": "station",
+   "label": "鉄道駅",
+   "group": "kotsu",
+   "kind": "plot",
+   "color": "#1d3557",
+   "icon": "◎",
+   "count": 10
+  },
+  {
+   "id": "toohyo",
+   "label": "投票所",
+   "group": "kurashi",
+   "kind": "plot",
+   "color": "#7b8794",
+   "icon": "□",
+   "count": 45
+  },
+  {
+   "id": "osm_0",
+   "label": "飲食店（密度）",
+   "group": "osm",
+   "kind": "heat",
+   "color": "#e07a5f",
+   "icon": "·",
+   "count": 454
+  },
+  {
+   "id": "osm_1",
+   "label": "コンビニ（密度）",
+   "group": "osm",
+   "kind": "heat",
+   "color": "#81b29a",
+   "icon": "·",
+   "count": 207
+  },
+  {
+   "id": "osm_2",
+   "label": "幼稚園・保育園（密度）",
+   "group": "osm",
+   "kind": "heat",
+   "color": "#f2cc8f",
+   "icon": "·",
+   "count": 151
+  },
+  {
+   "id": "osm_3",
+   "label": "薬局",
+   "group": "osm",
+   "kind": "plot",
+   "color": "#3d5a80",
+   "icon": "·",
+   "count": 124
+  },
+  {
+   "id": "osm_4",
+   "label": "学校",
+   "group": "osm",
+   "kind": "plot",
+   "color": "#98c1d9",
+   "icon": "·",
+   "count": 122
+  },
+  {
+   "id": "osm_5",
+   "label": "スーパー（密度）",
+   "group": "osm",
+   "kind": "heat",
+   "color": "#ee6c4d",
+   "icon": "·",
+   "count": 99
+  },
+  {
+   "id": "osm_6",
+   "label": "カフェ",
+   "group": "osm",
+   "kind": "plot",
+   "color": "#a8dadc",
+   "icon": "·",
+   "count": 78
+  },
+  {
+   "id": "osm_7",
+   "label": "診療所",
+   "group": "osm",
+   "kind": "plot",
+   "color": "#cdb4db",
+   "icon": "·",
+   "count": 63
+  },
+  {
+   "id": "osm_8",
+   "label": "スポーツ施設",
+   "group": "osm",
+   "kind": "plot",
+   "color": "#ffb4a2",
+   "icon": "·",
+   "count": 62
+  },
+  {
+   "id": "osm_9",
+   "label": "ガソリンスタンド",
+   "group": "osm",
+   "kind": "plot",
+   "color": "#b5838d",
+   "icon": "·",
+   "count": 61
+  },
+  {
+   "id": "osm_10",
+   "label": "郵便局",
+   "group": "osm",
+   "kind": "plot",
+   "color": "#8ecae6",
+   "icon": "·",
+   "count": 45
+  },
+  {
+   "id": "osm_11",
+   "label": "銀行",
+   "group": "osm",
+   "kind": "plot",
+   "color": "#219ebc",
+   "icon": "·",
+   "count": 42
+  },
+  {
+   "id": "osm_12",
+   "label": "パン屋",
+   "group": "osm",
+   "kind": "plot",
+   "color": "#ffb703",
+   "icon": "·",
+   "count": 34
+  },
+  {
+   "id": "osm_13",
+   "label": "病院",
+   "group": "osm",
+   "kind": "plot",
+   "color": "#fb8500",
+   "icon": "·",
+   "count": 32
+  },
+  {
+   "id": "osm_14",
+   "label": "図書館",
+   "group": "osm",
+   "kind": "plot",
+   "color": "#adb5bd",
+   "icon": "·",
+   "count": 24
+  }
+ ],
+ "hazard_note": "洪水浸水想定・土砂災害警戒はハザードマップポータルの公式タイル。町丁字境界はe-Stat（人口は境界属性の2020年国勢調査）。バス利便性はGTFS由来の150mグリッド。消防水利は消火活動の基盤密度の目安（出動回数の地区別公開ではない）。点は市オープンデータ（鉄道駅座標のみ一部近似）。近隣施設はOSM（公園除く）。",
+ "osm_attribution": "近隣施設は © OpenStreetMap contributors (ODbL)。公園(OSM)は市ODの公園と重複するため未掲載。"
+}

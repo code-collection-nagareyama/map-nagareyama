@@ -1,0 +1,25 @@
+# 生データ（約545MB）。scripts/download.py で再取得できる
+data/raw/
+
+# 外部データの取得キャッシュ（境界・学区・OSM など）
+data/external/
+
+# Excel/CSV の JSON 変換版。scripts/convert_to_json.py で再生成できる
+data/json/
+
+# パイプラインの中間生成物。web/public/data/ が最終成果物
+data/derived/
+
+download.log
+
+# Python
+__pycache__/
+*.pyc
+
+# Node / Vite
+web/node_modules/
+web/dist/
+web/tsconfig.tsbuildinfo
+
+.DS_Store
+Thumbs.db
