@@ -4,6 +4,8 @@ import { MapboxOverlay } from '@deck.gl/mapbox';
 import { ScatterplotLayer, GeoJsonLayer, GridCellLayer } from '@deck.gl/layers';
 import { HeatmapLayer } from '@deck.gl/aggregation-layers';
 import type { PickingInfo, Layer } from '@deck.gl/core';
+import type { AppPanel } from '../appPanel';
+import DataGuide from './DataGuide';
 
 interface LayerDef {
   id: string;
@@ -82,10 +84,30 @@ const hex2rgb = (h: string): [number, number, number] => [
 /** Carto Positron（薄い背景で施設・色分けが読みやすい） */
 const BASE_STYLE = 'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json';
 
-export default function FacilityMap() {
+const geoErrorMessage = (err: GeolocationPositionError): string => {
+  if (err.code === err.PERMISSION_DENIED) {
+    return '位置情報の利用が拒否されました。ブラウザの設定から許可してください。';
+  }
+  if (err.code === err.POSITION_UNAVAILABLE) {
+    return '現在地を特定できませんでした。';
+  }
+  if (err.code === err.TIMEOUT) {
+    return '現在地の取得がタイムアウトしました。もう一度お試しください。';
+  }
+  return '現在地を取得できませんでした。';
+};
+
+export default function FacilityMap({
+  panel,
+  onClosePanel,
+}: {
+  panel: AppPanel | null;
+  onClosePanel: () => void;
+}) {
   const holder = useRef<HTMLDivElement>(null);
   const mapRef = useRef<maplibregl.Map | null>(null);
   const deckRef = useRef<MapboxOverlay | null>(null);
+  const geoMarkerRef = useRef<maplibregl.Marker | null>(null);
 
   const [catalog, setCatalog] = useState<LayerCatalog | null>(null);
   const [points, setPoints] = useState<GeoJSON.FeatureCollection | null>(null);
@@ -109,21 +131,8 @@ export default function FacilityMap() {
   const [showSuiriHeat, setShowSuiriHeat] = useState(false);
   const [showParkHeat, setShowParkHeat] = useState(false);
   const [showKosodateHeat, setShowKosodateHeat] = useState(false);
-  /** スマホではレイヤパネルを閉じた状態から始める */
-  const [layersOpen, setLayersOpen] = useState(
-    () =>
-      typeof window === 'undefined' ||
-      window.matchMedia('(min-width: 901px)').matches,
-  );
-
-  useEffect(() => {
-    const mq = window.matchMedia('(min-width: 901px)');
-    const sync = () => {
-      if (mq.matches) setLayersOpen(true);
-    };
-    mq.addEventListener('change', sync);
-    return () => mq.removeEventListener('change', sync);
-  }, []);
+  const [geoBusy, setGeoBusy] = useState(false);
+  const [geoError, setGeoError] = useState<string | null>(null);
 
   const hazardKeys = useMemo(() => {
     if (!hazardsMeta) return [] as string[];
@@ -179,11 +188,58 @@ export default function FacilityMap() {
     mapRef.current = map;
     deckRef.current = deck;
     return () => {
+      geoMarkerRef.current?.remove();
+      geoMarkerRef.current = null;
       map.remove();
       mapRef.current = null;
       deckRef.current = null;
     };
   }, []);
+
+  const locateMe = () => {
+    if (!window.isSecureContext) {
+      setGeoError('位置情報は HTTPS（または localhost）でのみ使えます。');
+      return;
+    }
+    if (!navigator.geolocation) {
+      setGeoError('この端末では位置情報を取得できません。');
+      return;
+    }
+    setGeoBusy(true);
+    setGeoError(null);
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setGeoBusy(false);
+        const map = mapRef.current;
+        if (!map) return;
+        const lngLat: [number, number] = [
+          pos.coords.longitude,
+          pos.coords.latitude,
+        ];
+        geoMarkerRef.current?.remove();
+        const el = document.createElement('div');
+        el.className = 'geo-pin';
+        el.setAttribute('role', 'img');
+        el.setAttribute('aria-label', '現在地');
+        geoMarkerRef.current = new maplibregl.Marker({
+          element: el,
+          anchor: 'bottom',
+        })
+          .setLngLat(lngLat)
+          .addTo(map);
+        map.flyTo({
+          center: lngLat,
+          zoom: Math.max(map.getZoom(), 14),
+          duration: 800,
+        });
+      },
+      (err) => {
+        setGeoBusy(false);
+        setGeoError(geoErrorMessage(err));
+      },
+      { enableHighAccuracy: true, timeout: 15000, maximumAge: 30000 },
+    );
+  };
 
   // ハザードラスタのソース追加と表示切替
   useEffect(() => {
@@ -607,26 +663,37 @@ export default function FacilityMap() {
   );
 
   return (
-    <div className={'split map-split' + (layersOpen ? ' layers-open' : '')}>
-      <button
-        type="button"
-        className="map-layers-toggle"
-        aria-expanded={layersOpen}
-        aria-controls="map-layers-panel"
-        onClick={() => setLayersOpen((v) => !v)}
-      >
-        {layersOpen ? 'レイヤを閉じる' : 'レイヤ・表示設定'}
-      </button>
-      {layersOpen && (
+    <div className={'split map-split' + (panel ? ' layers-open' : '')}>
+      {panel && (
         <button
           type="button"
           className="map-layers-backdrop"
-          aria-label="レイヤパネルを閉じる"
-          onClick={() => setLayersOpen(false)}
+          aria-label="パネルを閉じる"
+          onClick={onClosePanel}
         />
       )}
-      <aside id="map-layers-panel" className="side">
-        <h2>地図で見る</h2>
+      {panel && (
+      <aside
+        id="map-layers-panel"
+        className="side"
+        aria-label={panel === 'guide' ? 'データの説明' : '地図の表示'}
+      >
+        <div className="side-head">
+          <h2>{panel === 'guide' ? 'データの説明' : '地図で見る'}</h2>
+          <button
+            type="button"
+            className="side-close"
+            aria-label="パネルを閉じる"
+            onClick={onClosePanel}
+          >
+            ×
+          </button>
+        </div>
+        {panel === 'guide' ? <DataGuide /> : (
+        <>
+        <p className="note" style={{ marginTop: 0 }}>
+          取得元や密度の計算方法は、左上メニューの「データの説明」にまとめています。
+        </p>
 
         <div className="lgroup">
           <h3>学区を重ねる</h3>
@@ -835,10 +902,35 @@ export default function FacilityMap() {
           {(showBusAccess || showBusBubble) && <>{' · '}GTFS（バス）</>}
           {showPopDensity && <>{' · '}国勢調査2020（境界属性）</>}
         </p>
+        </>
+        )}
       </aside>
+      )}
 
       <div className="mapwrap">
         <div ref={holder} className="map" />
+        <button
+          type="button"
+          className="geo-locate"
+          aria-label="現在地を表示"
+          disabled={geoBusy}
+          onClick={locateMe}
+        >
+          {geoBusy ? '取得中…' : '現在地'}
+        </button>
+        {geoError && (
+          <div className="geo-error" role="alert">
+            <span>{geoError}</span>
+            <button
+              type="button"
+              className="geo-error-close"
+              aria-label="メッセージを閉じる"
+              onClick={() => setGeoError(null)}
+            >
+              ×
+            </button>
+          </div>
+        )}
         {tip && !sel && (
           <div className="map-tip" style={{ left: tip.x, top: tip.y }}>
             <strong>{tip.title}</strong>
