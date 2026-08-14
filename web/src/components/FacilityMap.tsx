@@ -692,7 +692,7 @@ export default function FacilityMap({
         {panel === 'guide' ? <DataGuide /> : (
         <>
         <p className="note" style={{ marginTop: 0 }}>
-          取得元や密度の計算方法は、左上メニューの「データの説明」にまとめています。
+          取得元や密度の計算方法は、右上メニューの「データの説明」にまとめています。
         </p>
 
         <div className="lgroup">

@@ -103,7 +103,8 @@ body,
 .app-menu {
   position: absolute;
   top: calc(100% - 4px);
-  left: 12px;
+  right: 12px;
+  left: auto;
   z-index: 110;
   min-width: 200px;
   padding: 6px;

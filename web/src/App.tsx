@@ -42,6 +42,10 @@ export default function App() {
   return (
     <div className="app">
       <header className="header">
+        <div className="brand">
+          流山マップ
+          <small>流山市オープンデータの地図表示</small>
+        </div>
         <button
           type="button"
           className="menu-btn"
@@ -56,10 +60,6 @@ export default function App() {
             <span />
           </span>
         </button>
-        <div className="brand">
-          流山マップ
-          <small>流山市オープンデータの地図表示</small>
-        </div>
         {menuOpen && (
           <>
             <button
